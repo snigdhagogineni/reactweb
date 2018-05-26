@@ -2,47 +2,90 @@ import React, { Component } from 'react';
 
 import logo from './logo.svg';
 import './App.css';
-  class App extends Component {
-    state={
-      likes:0,
-      shares:0
+import ReactDOM from 'react-dom';
+import LoggedOut from './LoggedOut';
+import LoggedIn from './LoggedIn';
+import config from './config';
+import FacebookIcon from './FacebookIcon';
+
+const defaultFetchOptions = {
+  method: 'POST',
+  headers: {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json'
+  }
+};
+
+class App extends Component {
+  constructor() {
+    super();
+
+    this.state = {
+      userLoggedIn: false,
+      errorMessage: '',
+      userId: null
     }
-  inclikes=()=>{
-      this.setState(
-        {
-          likes:this.state.likes+1
-        }
-      )
+    this.logUserIn = this.logUserIn.bind(this);
+  }
+
+  parseLogInResponse({user = {}}) {
+    if (user.success) {
+      this.setState({
+        userLoggedIn: true,
+        userId: user.id
+      });
+    } else {
+      this.setState({
+        errorMessage: 'Sorry that wasnt correct'
+      })
     }
-    incshares=()=>{
-      this.setState(
-        {
-          shares:this.state.shares+1
-        }
-      )
-    }
+  }
+
+  logUserIn(username, password) {
+    const fetchOptions = Object.assign({}, defaultFetchOptions);
+    fetchOptions.body = JSON.stringify({
+      username: username ,
+      password: password
+      
+      
+    });
+    return fetch(config.USER_URL, fetchOptions)
+      .then(results => results.json())
+      .then(response => this.parseLogInResponse(response));
+  }
+
+
+
+
+
+
+
     render() {
       return (
-        <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">facebook</h1>
+        <div className="App-page">
+          <header className="App-page-header">
+          <center><FacebookIcon /></center>
+           <center>  <h1 className="App-page-title">facebook</h1></center>
           </header>
-          <p className="App-intro">
-            likes:{this.state.likes}
-            shares:{this.state.shares}
-          </p>
-        <div>
-          <button onClick={this.inclikes}>LIKE</button>
           
-          <button onClick={this.incshares}>SHARE</button>
+        <div>
+         {
+           this.state.userLoggedIn ?
+            (<p>username<LoggedIn userId={this.state.userId}/></p>) :
+             (<LoggedOut errorMessage={this.state.errorMessage} logUserIn={this.logUserIn}/>)
+         }
           </div>
           </div>
       );
     }
   }
 
-  
- 
-
 export default App;
+
+
+
+
+
+
+
+
